@@ -1,0 +1,47 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.sass-cache
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+
+# Python virtual environment
+venv/
+.env
+.python-version
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# pytest
+.cache
+.pytest_cache/
+
+# mypy
+.mypy_cache/
