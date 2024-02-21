@@ -63,9 +63,9 @@ def handle_client(secure_socket):
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('127.0.0.1', 5000))
+    server_socket.bind(('127.0.0.1', 5001))
     server_socket.listen()
-    print("Server is listening on 127.0.0.1:5000...")
+    print("Server is listening on 127.0.0.1:5001...")
 
     # Create an SSL context
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)

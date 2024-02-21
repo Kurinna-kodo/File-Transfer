@@ -18,7 +18,7 @@ def calculate_file_hash(file_name):
             buffer = file.read(65536)
     return hasher.hexdigest()
 
-def send_file(file_names, host, port):
+def send_file(file_names, host, port, cafile):
     for file_name in file_names:
         # Calculate the hash of each file
         file_hash = calculate_file_hash(file_name)
@@ -27,7 +27,7 @@ def send_file(file_names, host, port):
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # Create an SSL context for secure communication
-        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=cafile)
 
         # Wrap the socket with SSL for encryption
         secure_socket = context.wrap_socket(client_socket, server_hostname=host)
@@ -66,11 +66,11 @@ def send_file(file_names, host, port):
             # Close the secure connection
             secure_socket.close()
 
-def send_files(file_names, host, port):
+def send_files(file_names, host, port, cafile):
     # Create a thread for each file to be sent
     threads = []
     for file_name in file_names:
-        thread = threading.Thread(target=send_file, args=([file_name], host, port))
+        thread = threading.Thread(target=send_file, args=([file_name], host, port, cafile))
         threads.append(thread)
         thread.start()
 
@@ -79,13 +79,12 @@ def send_files(file_names, host, port):
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) != 4:
-        print("Usage: python client.py <server_host> <server_port> <filename1> [<filename2> ...]")
+    if len(sys.argv) != 5:
+        print("Usage: python client.py <server_host> <server_port> <cafile> <filename1> [<filename2> ...]")
         sys.exit(1)
     server_host = sys.argv[1]
     server_port = int(sys.argv[2])
-    file_names = sys.argv[3:]
+    cafile = sys.argv[3]
+    file_names = sys.argv[4:]
 
-    send_files(file_names, server_host, server_port)
-
-
+    send_files(file_names, server_host, server_port, cafile)
