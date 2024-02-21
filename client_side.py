@@ -3,10 +3,23 @@ import os
 import ssl
 import json
 import threading
+import hashlib
+
+def calculate_file_hash(file_name):
+    hasher = hashlib.sha256()
+    with open(file_name, 'rb') as file:
+        buffer = file.read(65536) # Read the file in chunks to converve memory
+        while len(buffer) > 0:
+            hasher.update(buffer)
+            buffer = file.read(65536)
+    return hasher.hexdigest()
 
 def send_file(file_names, host, port):
 
     for file_name in file_names:
+        #Calculate the hash of each file
+        file_hash = calculate_file_hash(file_name)
+
         # Create a socket
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
@@ -21,11 +34,15 @@ def send_file(file_names, host, port):
             secure_socket.connect((host, port))
             print(f"Connected securely to {host} on port {port}")
             
-            # Get the size of the file to be sent
+              # Get the size of the file to be sent
             file_size = os.path.getsize(file_name)
             
-            #Create Metadata Dictionary and convert to JSON
-            metadata = [{'file_name': file_name, 'file_size': os.path.getsize(file_name)} for file_name in file_names]
+            # Create Metadata Dictionary and convert to JSON
+            metadata = {
+                'file_name': file_name,
+                'file_size': file_size,
+                'file_hash': file_hash
+            }
             metadata_json = json.dumps(metadata)
 
             # Send metadata (file name and size) to the server

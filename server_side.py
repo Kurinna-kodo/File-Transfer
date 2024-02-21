@@ -3,12 +3,23 @@ import socket
 import ssl
 import json
 import threading
+import hashlib
+
+def calculate_file_hash(file_name):
+    hasher = hashlib.sha256()
+    with open(file_name, 'rb') as file:
+        buffer = file.read(65536)  # Read the file in chunks to conserve memory
+        while len(buffer) > 0:
+            hasher.update(buffer)
+            buffer = file.read(65536)
+    return hasher.hexdigest()
 
 def receive_file(secure_socket, metadata):
 
     # Extract file name and size from metadata dictionary
     file_name = metadata['file_name']
     file_size = metadata['file_size']
+    file_hash = metadata['file_hash']
 
     # Open the file and write it in binary mode
     with open(file_name, 'wb') as file:
@@ -20,8 +31,20 @@ def receive_file(secure_socket, metadata):
             file.write(chunk)
             bytes_received += len(chunk)
 
+    # Calculate the hash of the received file
+    received_file_hash = calculate_file_hash(file_name)
+
+    verification = received_file_hash == file_hash
+
+    if verification:
+        print(f'File {file_name} has been received and verified.')
+    else:
+        print(f'File {file_name} has been received, but verification failed.')
+
     print(f'File {file_name} has been received.')
     secure_socket.close()  # Ensure the secure socket is closed properly
+
+    return verification
 
 def handle_client(secure_socket):
     try:
