@@ -4,6 +4,10 @@ import ssl
 import json
 import threading
 import hashlib
+import logging
+
+# Configure logging
+logging.basicConfig(filename='server.log', level=logging.ERROR, format='%(asctime)s - %(levelname)s: %(message)s')
 
 def calculate_file_hash(file_name):
     hasher = hashlib.sha256()
@@ -15,8 +19,7 @@ def calculate_file_hash(file_name):
     return hasher.hexdigest()
 
 def receive_file(secure_socket, metadata):
-
-    # Extract file name and size from metadata dictionary
+    # Extract file name, size, and hash from metadata dictionary
     file_name = metadata['file_name']
     file_size = metadata['file_size']
     file_hash = metadata['file_hash']
@@ -34,17 +37,18 @@ def receive_file(secure_socket, metadata):
     # Calculate the hash of the received file
     received_file_hash = calculate_file_hash(file_name)
 
-    verification = received_file_hash == file_hash
-
-    if verification:
+    # Verify the received file hash
+    if received_file_hash == file_hash:
+        logging.info(f'File {file_name} has been received and verified.')
         print(f'File {file_name} has been received and verified.')
     else:
+        logging.error(f'File {file_name} has been received, but verification failed.')
         print(f'File {file_name} has been received, but verification failed.')
+        secure_socket.close()  # Terminate the connection if verification fails
+        return
 
     print(f'File {file_name} has been received.')
     secure_socket.close()  # Ensure the secure socket is closed properly
-
-    return verification
 
 def handle_client(secure_socket):
     try:
@@ -52,6 +56,7 @@ def handle_client(secure_socket):
         metadata = json.loads(metadata_json)
         receive_file(secure_socket, metadata)
     except Exception as e:
+        logging.error(f"Error handling client: {e}")
         print(f"Error handling client: {e}")
     finally:
         secure_socket.close()
@@ -72,6 +77,7 @@ def start_server():
     try:
         context.load_cert_chain(certfile=certfile, keyfile=keyfile)
     except Exception as e:
+        logging.error(f"Failed to load SSL certificate/key: {e}")
         print(f"Failed to load SSL certificate/key: {e}")
         exit(1)  # Exit the program if the certificate/key cannot be loaded
 
@@ -83,11 +89,12 @@ def start_server():
         try:
             # Secure the connection
             secure_socket = context.wrap_socket(client_socket, server_side=True)
-            
+
             client_handler = threading.Thread(target=handle_client, args=(secure_socket,))
             client_handler.start()
 
         except Exception as e:
+            logging.error(f"Error securing connection: {e}")
             print(f"Error securing connection: {e}")
             client_socket.close()
 
