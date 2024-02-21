@@ -81,6 +81,12 @@ def start_server():
         print(f"Failed to load SSL certificate/key: {e}")
         exit(1)  # Exit the program if the certificate/key cannot be loaded
 
+    # Specify the path to the file containing trusted CA certificates
+    cafile = 'path/to/cafile.pem'
+
+    # Load the trusted CA certificates
+    context.load_verify_locations(cafile=cafile)
+
     while True:
         # Accept new connections
         client_socket, addr = server_socket.accept()
