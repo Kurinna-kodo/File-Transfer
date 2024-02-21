@@ -45,3 +45,9 @@ instance/
 
 # mypy
 .mypy_cache/
+
+# SSL certificates and private keys
+*.pem
+#Environment variables and configuration files
+.env
+config.json
